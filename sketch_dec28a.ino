@@ -134,8 +134,67 @@ direction readDirection() //TODO:
   return direction::forward;
 }
 
+bool hasFoundObstacleOnTheLeft()
+{
+  return true;
+  //TODO: implement sensor reading
+}
+
+bool hasFoundObstacleOnTheRight()
+{
+  return false;
+  //TODO: implement sensor reading
+}
+
+bool hasFoundObstacleInFrontOf()
+{
+  return false;
+  //TODO: implement sensor reading
+}
+
+bool hasFoundObstacle()
+{
+  return hasFoundObstacleOnTheLeft() || hasFoundObstacleOnTheRight() || hasFoundObstacleInFrontOf();  
+}
+
+void rotateInPlaceBy90DegreesLeft()
+{  
+  clearStates();
+  rightForward();
+  leftBackward();
+  analogWrite(ENA, calculateSpeed(100, 0));
+  analogWrite(ENB, calculateSpeed(100, 0));
+  delay(380);
+  clearStates();
+}
+
+void rotateInPlaceBy90DegreesRight()
+{
+  clearStates();
+  rightBackward();
+  leftForward();
+  analogWrite(ENA, calculateSpeed(100, 0));
+  analogWrite(ENB, calculateSpeed(100, 0));
+  delay(380);
+  clearStates();
+}
+
+void moveForward(int numberOfMovementUnits)
+{
+  //TODO:
+}
+
 void loop()
 {
+rotateInPlaceBy90DegreesLeft();
+delay(1000);
+rotateInPlaceBy90DegreesRight();
+delay(1000);
+/*
+  bool obstacleFound = hasFoundObstacle();
+
+  if(hasFoundObstacle == false)
+  {
   //input read
   sp = readSpeed();
   leftTurnFactor = readLeftTurnFactor(); 1; 
@@ -151,4 +210,28 @@ void loop()
     straightForward();
   else
     straightBackward();
+  }
+  else
+  {
+    clearStates() //stop car
+    if(hasFoundObstacleOnTheLeft())
+    {
+      rotateInPlaceBy90DegreesRight();
+      moveForward(100); //100 number of move units
+      rotateInPlaceBy90DegreesLeft();
+    }
+    else if(hasFoundObstacleOnTheRight())
+    {
+      rotateInPlaceBy90DegreesLeft();
+      moveForward(100); //100 number of move units
+      rotateInPlaceBy90DegreesRight();
+    }
+    else if(hasFoundObstacleInFrontOf()) // obstacles that are in fron of are always get round on the right side 
+    {
+      rotateInPlaceBy90DegreesRight();
+      moveForward(100); //100 number of move units
+      rotateInPlaceBy90DegreesLeft();
+    }
+  }
+  */
 }
