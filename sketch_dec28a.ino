@@ -6,11 +6,22 @@ const int IN2 = 3;
 const int IN1 = 5;
 const int ENB = 6; //PRAWY
 
+//TODO: calibrate
+const int singleOmitMoveLength = 500;
+const int lengthOfRotation = 380;
+
 enum direction
 {
   forward,
   backward
 };
+
+int sp;
+double leftTurnFactor;
+double rightTurnFactor;
+direction dir;    
+
+
 
 void setup() 
 {
@@ -90,13 +101,7 @@ int calculateSpeed(int speedVal, double turnFactor, int speedUnits = 100, int ma
   return calculatedSpeed;
 }
 
-// @@@@@@@@@@@@@@@ INPUTS @@@@@@@@@@@@@@@@@@@@@@@@@
-int sp;
-double leftTurnFactor;
-double rightTurnFactor;
-direction dir;       
-
-int readSpeed() //TODO:
+int readSpeed() //TODO: INPUT
 {
   
   const int MaxChars = 5; // an int string contains up to 5 digits and
@@ -119,119 +124,117 @@ int readSpeed() //TODO:
   return speedVal;
 }
 
-double readLeftTurnFactor() //TODO:
+double readLeftTurnFactor() //TODO: INPUT
 {
   return 1; //output val <0;1>
 }
 
-double readRightTurnFactor() //TODO:
+double readRightTurnFactor() //TODO: INPUT
 {
   return 0; //output (val <0;1> 
 }
 
-direction readDirection() //TODO:
+direction readDirection() //TODO: INPUT
 {
   return direction::forward;
 }
 
-bool hasFoundObstacleOnTheLeft()
+bool hasFoundObstacleOnTheLeft() //TODO: INPUT
 {
   return true;
   //TODO: implement sensor reading
 }
 
-bool hasFoundObstacleOnTheRight()
+bool hasFoundObstacleOnTheRight() //TODO: INPUT
 {
   return false;
   //TODO: implement sensor reading
 }
 
-bool hasFoundObstacleInFrontOf()
+bool hasFoundObstacleInFrontOf() //TODO: INPUT
 {
   return false;
   //TODO: implement sensor reading
 }
 
-bool hasFoundObstacle()
+bool hasFoundObstacle() //TODO: INPUT
 {
   return hasFoundObstacleOnTheLeft() || hasFoundObstacleOnTheRight() || hasFoundObstacleInFrontOf();  
 }
 
-void rotateInPlaceBy90DegreesLeft()
+void rotateLeftInPlace(int rotateLength)
 {  
   clearStates();
   rightForward();
   leftBackward();
   analogWrite(ENA, calculateSpeed(100, 0));
   analogWrite(ENB, calculateSpeed(100, 0));
-  delay(380);
+  delay(rotateLength);
   clearStates();
 }
 
-void rotateInPlaceBy90DegreesRight()
+void rotateRightInPlace(int rotateLength)
 {
   clearStates();
   rightBackward();
   leftForward();
   analogWrite(ENA, calculateSpeed(100, 0));
   analogWrite(ENB, calculateSpeed(100, 0));
-  delay(380);
+  delay(rotateLength);
   clearStates();
 }
 
-void moveForward(int numberOfMovementUnits)
+void moveForward(int numberOfMovementUnits) //TODO: 
 {
-  //TODO:
+  clearStates();
+  straightForward();
+  delay(numberOfMovementUnits);
+  clearStates();
 }
 
 void loop()
 {
-rotateInPlaceBy90DegreesLeft();
-delay(1000);
-rotateInPlaceBy90DegreesRight();
-delay(1000);
-/*
   bool obstacleFound = hasFoundObstacle();
 
   if(hasFoundObstacle == false)
   {
-  //input read
-  sp = readSpeed();
-  leftTurnFactor = readLeftTurnFactor(); 1; 
-  rightTurnFactor = readRightTurnFactor();
-  dir = readDirection(); 
-  
-  //set speed of wheels
-  analogWrite(ENA, calculateSpeed(sp, leftTurnFactor));
-  analogWrite(ENB, calculateSpeed(sp, rightTurnFactor));
-  
-  //set direction
-  if(dir==forward)
-    straightForward();
-  else
-    straightBackward();
+    //input read
+    sp = readSpeed();
+    leftTurnFactor = readLeftTurnFactor();
+    rightTurnFactor = readRightTurnFactor();
+    dir = readDirection(); 
+    
+    //set speed of wheels
+    analogWrite(ENA, calculateSpeed(sp, leftTurnFactor));
+    analogWrite(ENB, calculateSpeed(sp, rightTurnFactor));
+    
+    //set direction
+    if(dir==forward)
+      straightForward();
+    else
+      straightBackward();
   }
-  else
+  else //hasFoundObstacle == true
   {
-    clearStates() //stop car
+    clearStates(); //stop car
+    
     if(hasFoundObstacleOnTheLeft())
     {
-      rotateInPlaceBy90DegreesRight();
-      moveForward(100); //100 number of move units
-      rotateInPlaceBy90DegreesLeft();
+      rotateRightInPlace(lengthOfRotation);
+      moveForward(singleOmitMoveLength);
+      rotateLeftInPlace(lengthOfRotation);
     }
     else if(hasFoundObstacleOnTheRight())
     {
-      rotateInPlaceBy90DegreesLeft();
-      moveForward(100); //100 number of move units
-      rotateInPlaceBy90DegreesRight();
+      rotateLeftInPlace(lengthOfRotation);
+      moveForward(singleOmitMoveLength);
+      rotateRightInPlace(lengthOfRotation);
     }
     else if(hasFoundObstacleInFrontOf()) // obstacles that are in fron of are always get round on the right side 
     {
-      rotateInPlaceBy90DegreesRight();
-      moveForward(100); //100 number of move units
-      rotateInPlaceBy90DegreesLeft();
+      rotateRightInPlace(lengthOfRotation);
+      moveForward(singleOmitMoveLength);
+      rotateLeftInPlace(lengthOfRotation);
     }
   }
-  */
 }
