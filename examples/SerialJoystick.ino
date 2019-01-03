@@ -1,6 +1,6 @@
-#include "includes/SerialJoystick.h"
-#include "includes/Vector.h"
-#include "includes/helpers.h"
+#include "SerialJoystick.h"
+#include "Vector.h"
+#include "helpers.h"
 
 Vector direction(15, 15);
 SerialJoystick joystick(&Serial1);
