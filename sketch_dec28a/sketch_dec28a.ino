@@ -1,4 +1,8 @@
-//PINOUT
+#include "SerialJoystick.h"
+#include "Vector.h"
+#include "helpers.h"
+
+//ENGINE DRIVER PINOUT
 const int ENA =  9; //LEWY
 const int IN4 = 2;
 const int IN3 = 4;
@@ -9,6 +13,16 @@ const int ENB = 6; //PRAWY
 //TODO: calibrate
 const int singleOmitMoveLength = 500;
 const int lengthOfRotation = 380;
+
+const int controllerMaxValForY = 60;
+const int controllerMinValForY = 10;
+const int controllerMaxValForX = 60;
+const int controllerMinValForX = 10;
+const int middlePosForY = controllerMinValForY + (controllerMaxValForY - controllerMinValForY)/2;
+const int middlePosForX = controllerMinValForX + (controllerMaxValForX - controllerMinValForX)/2;
+
+Vector controller(middlePosForX, middlePosForY);
+SerialJoystick joystick(&Serial);
 
 enum direction
 {
@@ -32,6 +46,7 @@ pinMode(IN2, OUTPUT);
 pinMode(IN1, OUTPUT);
 pinMode(ENA, OUTPUT);
 Serial.begin(9600);
+Serial.setTimeout(10);
 }
 
 void clearStates()
@@ -95,53 +110,67 @@ int calculateSpeed(int speedVal, double turnFactor, int speedUnits = 100, int ma
   if(speedVal == 0)
     calculatedSpeed = 0;
   else
-    calculatedSpeed =  minSpeedVal + (speedVal*(1-turnFactor))*(maxSpeedVal-minSpeedVal)/speedUnits;
+    calculatedSpeed =  minSpeedVal + (1-turnFactor) * speedVal*(maxSpeedVal-minSpeedVal)/speedUnits;
     
-  Serial.println(calculatedSpeed);
   return calculatedSpeed;
 }
 
-int readSpeed() //TODO: INPUT
+int readSpeed() //returns val in range from 0 to 100
 {
+  const double scalingFactor = 100/(controllerMaxValForY - controllerMinValForY);
+  int incline;
   
-  const int MaxChars = 5; // an int string contains up to 5 digits and
-                          // is terminated by a 0 to indicate end of string
-  char strValue[MaxChars+1]; // must be big enough for digits and terminating null
-  int index = 0;         // the index into the array storing the received digits
-
-  int speedVal = 0;
-  while(true)
-  {
-    char ch = Serial.read();
-    if(ch >= '0' && ch <= '9') // is this an ascii digit between 0 and 9?
-       speedVal = (speedVal * 10) + (ch - '0'); // yes, accumulate the value
-    else if (ch == 10)  // is the character the newline character
-    {
-       Serial.println(speedVal);
-       break;
-    }
-  }
-  return speedVal;
+  if(controller.y <= middlePosForY) //forward
+    incline =  middlePosForY-controller.y;
+  else //backward
+    incline = controller.y - middlePosForY;
+    
+  return incline * scalingFactor;
 }
 
-double readLeftTurnFactor() //TODO: INPUT
+double readLeftTurnFactor() //output val <0;1>
 {
-  return 1; //output val <0;1>
+  const double scalingFactor = 1/(controllerMaxValForX - middlePosForX);
+  int incline;
+  
+  if(controller.x > middlePosForX) //controller sticked to the left
+    incline =  controller.x - middlePosForX;
+  else
+    incline = 0;
+    
+  return incline * scalingFactor;
 }
 
-double readRightTurnFactor() //TODO: INPUT
+double readRightTurnFactor() //output val <0;1>
 {
-  return 0; //output (val <0;1> 
+  const double scalingFactor = 1/(controllerMaxValForX - middlePosForX);
+  int incline;
+  
+  if(controller.x < middlePosForX) //controller sticked to the left
+    incline =  middlePosForX-controller.x;
+  else
+    incline = 0;
+    
+  return incline * scalingFactor;
 }
 
-direction readDirection() //TODO: INPUT
+direction readDirection()
 {
-  return direction::forward;
+  if(controller.y <= middlePosForY) //forward
+    return direction::forward;
+   else //backward
+    return direction::backward;
+}
+
+void readStateOfController()
+{
+  joystick.readPositionIfAvailable(&controller);
+  flush(&Serial);
 }
 
 bool hasFoundObstacleOnTheLeft() //TODO: INPUT
 {
-  return true;
+  return false;
   //TODO: implement sensor reading
 }
 
@@ -196,9 +225,12 @@ void loop()
 {
   bool obstacleFound = hasFoundObstacle();
 
-  if(hasFoundObstacle == false)
+
+
+  if(obstacleFound == false)
   {
     //input read
+    readStateOfController();
     sp = readSpeed();
     leftTurnFactor = readLeftTurnFactor();
     rightTurnFactor = readRightTurnFactor();
