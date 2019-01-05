@@ -117,7 +117,7 @@ int calculateSpeed(int speedVal, double turnFactor, int speedUnits = 100, int ma
 
 int readSpeed() //returns val in range from 0 to 100
 {
-  const double scalingFactor = 100/(controllerMaxValForY - controllerMinValForY);
+  const double scalingFactor = 100.0/(controllerMaxValForY - controllerMinValForY);
   int incline;
   
   if(controller.y <= middlePosForY) //forward
@@ -130,24 +130,24 @@ int readSpeed() //returns val in range from 0 to 100
 
 double readLeftTurnFactor() //output val <0;1>
 {
-  const double scalingFactor = 1/(controllerMaxValForX - middlePosForX);
+  const double scalingFactor = 1.0/(controllerMaxValForX - middlePosForX);
   int incline;
   
-  if(controller.x > middlePosForX) //controller sticked to the left
-    incline =  controller.x - middlePosForX;
+  if(controller.x < middlePosForX) //controller sticked to the left
+   incline =  middlePosForX-controller.x;
   else
     incline = 0;
     
-  return incline * scalingFactor;
+  return incline; //* scalingFactor;
 }
 
 double readRightTurnFactor() //output val <0;1>
 {
-  const double scalingFactor = 1/(controllerMaxValForX - middlePosForX);
+  const double scalingFactor = 1.0/(controllerMaxValForX - middlePosForX);
   int incline;
   
-  if(controller.x < middlePosForX) //controller sticked to the left
-    incline =  middlePosForX-controller.x;
+  if(controller.x > middlePosForX) //controller sticked to the left
+    incline =  controller.x - middlePosForX;
   else
     incline = 0;
     
@@ -237,14 +237,14 @@ void loop()
     dir = readDirection(); 
     
     //set speed of wheels
-    analogWrite(ENA, calculateSpeed(sp, leftTurnFactor));
+    analogWrite(ENA, calculateSpeed(sp, leftTurnFactor)); 
     analogWrite(ENB, calculateSpeed(sp, rightTurnFactor));
     
     //set direction
     if(dir==forward)
-      straightForward();
+      straightForward(); //TODO: change name
     else
-      straightBackward();
+      straightBackward(); //TODO: change name
   }
   else //hasFoundObstacle == true
   {
