@@ -36,30 +36,45 @@ void Steerage::rightBackward()
 void Steerage::rotateLeftInPlace(int rotateLength)
 {  
     clearStatesOfEnginesDriversPins();
+    
     rightForward();
     leftBackward();
     analogWrite(ENA, calculateSpeed(100, 0));
     analogWrite(ENB, calculateSpeed(100, 0));
     delay(rotateLength);
+    
     clearStatesOfEnginesDriversPins();
+    analogWrite(ENA, calculateSpeed(0, 0));
+    analogWrite(ENB, calculateSpeed(0, 0));
 }
 
 void Steerage::rotateRightInPlace(int rotateLength)
 {
     clearStatesOfEnginesDriversPins();
+    
     rightBackward();
     leftForward();
     analogWrite(ENA, calculateSpeed(100, 0));
     analogWrite(ENB, calculateSpeed(100, 0));
     delay(rotateLength);
+    
     clearStatesOfEnginesDriversPins();
+    analogWrite(ENA, calculateSpeed(0, 0));
+    analogWrite(ENB, calculateSpeed(0, 0));
 }
 
 void Steerage::moveForward(int numberOfMovementUnits)
 {
     clearStatesOfEnginesDriversPins();
+    
     setDirection(direction::forward);
+    analogWrite(ENA, calculateSpeed(100, 0));
+    analogWrite(ENB, calculateSpeed(100, 0));
+    
     delay(numberOfMovementUnits);
+
+    analogWrite(ENA, calculateSpeed(0, 0));
+    analogWrite(ENB, calculateSpeed(0, 0));
     clearStatesOfEnginesDriversPins();
 }
 

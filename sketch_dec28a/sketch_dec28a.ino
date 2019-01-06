@@ -5,7 +5,7 @@
 #include "Steerage.h"
 #include "pinout.h"
 
-const int obstacleDistanceDetectionInCm = 5; //TODO: calibrate
+const int obstacleDistanceDetectionInCm = 10; //TODO: calibrate
 int sp;
 
 SerialJoystick joystick(&Serial, 60, 10, 60, 10);
@@ -26,7 +26,7 @@ void setup()
 
   //bluetooth
   Serial.begin(9600);
-  //Serial.setTimeout(10);
+  Serial.setTimeout(10);
 
   //sensors
   pinMode(frontTrig, OUTPUT);
@@ -37,17 +37,33 @@ void setup()
   pinMode(leftEcho, INPUT);
 }
 
+
+
+
 bool hasFoundObstacle(int detectionDistanceInCm)
 {
+  
   return leftSensor.isCloserThan(detectionDistanceInCm) || rightSensor.isCloserThan(detectionDistanceInCm) || frontSensor.isCloserThan(detectionDistanceInCm);  
+}
+
+void makeReads()
+{
+  joystick.readPositionIfAvailable();
+
+  static int i = 0;
+  if(i++ < 10) //only once 10 iteratios, because they take long time
+  {
+    frontSensor.read();
+    leftSensor.read();
+    rightSensor.read();
+  }
+  else
+    i = 0;
 }
 
 void loop()
 {
-  joystick.readPositionIfAvailable();
-  frontSensor.read();
-  leftSensor.read();
-  rightSensor.read();
+  makeReads();
 
   if(hasFoundObstacle(obstacleDistanceDetectionInCm) == false)
   {
