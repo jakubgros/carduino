@@ -5,36 +5,14 @@
 #include "Steerage.h"
 #include "pinout.h"
 
+const int obstacleDistanceDetectionInCm = 5; //TODO: calibrate
+int sp;
 
-
-
-//TODO: calibrate
-const int obstacleDistanceDetectionInCm = 5;
-
-const int controllerMaxValForY = 60;
-const int controllerMinValForY = 10;
-const int controllerMaxValForX = 60;
-const int controllerMinValForX = 10;
-const int middlePosForY = controllerMinValForY + (controllerMaxValForY - controllerMinValForY)/2;
-const int middlePosForX = controllerMinValForX + (controllerMaxValForX - controllerMinValForX)/2;
-
-
-
-
-
-
-Vector controller(middlePosForX, middlePosForY); //TODO find better name
-SerialJoystick joystick(&Serial);
-
+SerialJoystick joystick(&Serial, 60, 10, 60, 10);
 DistanceSensor frontSensor(frontTrig, frontEcho);
 DistanceSensor leftSensor(leftTrig, leftEcho);
 DistanceSensor rightSensor(rightTrig, rightEcho);
-
 Steerage car(ENA, ENB, IN1, IN2, IN3, IN4);
-int sp;
-
-
-
 
 void setup() 
 {
@@ -59,85 +37,22 @@ void setup()
   pinMode(leftEcho, INPUT);
 }
 
-int readSpeed() //returns val in range from 0 to 100
-{
-  const double scalingFactor = 100.0/(controllerMaxValForY - controllerMinValForY);
-  int incline;
-  
-  if(controller.y <= middlePosForY) //forward
-    incline =  middlePosForY-controller.y;
-  else //backward
-    incline = controller.y - middlePosForY;
-    
-  return incline * scalingFactor;
-}
-
-
-
-
-
-
-double readLeftTurnFactor() //output val <0;1>
-{
-  const double scalingFactor = 1.0/(controllerMaxValForX - middlePosForX);
-  int incline;
-  
-  if(controller.x < middlePosForX) //controller sticked to the left
-   incline =  middlePosForX-controller.x;
-  else
-    incline = 0;
-    
-  return incline; //* scalingFactor;
-}
-
-double readRightTurnFactor() //output val <0;1>
-{
-  const double scalingFactor = 1.0/(controllerMaxValForX - middlePosForX);
-  int incline;
-  
-  if(controller.x > middlePosForX) //controller sticked to the left
-    incline =  controller.x - middlePosForX;
-  else
-    incline = 0;
-    
-  return incline * scalingFactor;
-}
-
-direction readDirection()
-{
-  if(controller.y <= middlePosForY) //forward
-    return direction::forward;
-   else //backward
-    return direction::backward;
-}
-
-void readStateOfController()
-{
-  joystick.readPositionIfAvailable(&controller);
-  flush(&Serial);
-}
-
 bool hasFoundObstacle(int detectionDistanceInCm)
 {
   return leftSensor.isCloserThan(detectionDistanceInCm) || rightSensor.isCloserThan(detectionDistanceInCm) || frontSensor.isCloserThan(detectionDistanceInCm);  
 }
 
-
 void loop()
 {
   if(hasFoundObstacle(obstacleDistanceDetectionInCm) == false)
   {
-    readStateOfController();
-    
-    sp = readSpeed();
-    car.setSpeedOfLeftWheels(sp, readLeftTurnFactor()); 
-    car.setSpeedOfRightWheels(sp, readRightTurnFactor());
-    car.setDirection(readDirection()); 
+    sp = joystick.readSpeed();
+    car.setSpeedOfLeftWheels(sp, joystick.readLeftTurnFactor()); 
+    car.setSpeedOfRightWheels(sp, joystick.readRightTurnFactor());
+    car.setDirection(joystick.readDirection()); 
   }
-  else //hasFoundObstacle == true
+  else //has found obstacle
   {
-    car.clearStates(); //stop car //TODO: change it's name
-    
     if(leftSensor.isCloserThan(obstacleDistanceDetectionInCm))
       car.omitObstacleOnTheLeft();
     else if(rightSensor.isCloserThan(obstacleDistanceDetectionInCm))

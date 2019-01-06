@@ -1,7 +1,7 @@
 #include "Steerage.h"
 #include "Arduino.h"
 
-void Steerage::clearStates()
+void Steerage::clearStatesOfEnginesDriversPins()
 {
     digitalWrite(IN1, LOW); 
     digitalWrite(IN2, LOW); 
@@ -33,35 +33,34 @@ void Steerage::rightBackward()
     digitalWrite(IN4, LOW); 
 }
 
-
 void Steerage::rotateLeftInPlace(int rotateLength)
 {  
-    clearStates();
+    clearStatesOfEnginesDriversPins();
     rightForward();
     leftBackward();
     analogWrite(ENA, calculateSpeed(100, 0));
     analogWrite(ENB, calculateSpeed(100, 0));
     delay(rotateLength);
-    clearStates();
+    clearStatesOfEnginesDriversPins();
 }
 
 void Steerage::rotateRightInPlace(int rotateLength)
 {
-    clearStates();
+    clearStatesOfEnginesDriversPins();
     rightBackward();
     leftForward();
     analogWrite(ENA, calculateSpeed(100, 0));
     analogWrite(ENB, calculateSpeed(100, 0));
     delay(rotateLength);
-    clearStates();
+    clearStatesOfEnginesDriversPins();
 }
 
 void Steerage::moveForward(int numberOfMovementUnits)
 {
-    clearStates();
+    clearStatesOfEnginesDriversPins();
     setDirection(direction::forward);
     delay(numberOfMovementUnits);
-    clearStates();
+    clearStatesOfEnginesDriversPins();
 }
 
 void Steerage::setSpeedOfLeftWheels(int speedVal, double turnFactor, int speedUnits, int maxSpeedVal, int minSpeedVal)
@@ -87,36 +86,39 @@ int Steerage::calculateSpeed(int speedVal, double turnFactor, int speedUnits, in
 
 void Steerage::omitObstacleOnTheLeft()
 {
-      rotateRightInPlace(lengthOfRotation);
-      moveForward(singleOmitMoveLength);
-      rotateLeftInPlace(lengthOfRotation);
+  clearStatesOfEnginesDriversPins();
+  rotateRightInPlace(lengthOfRotation);
+  moveForward(singleOmitMoveLength);
+  rotateLeftInPlace(lengthOfRotation);
 }
 
 void Steerage::omitObstacleOnTheRight()
 {
-        rotateLeftInPlace(lengthOfRotation);
-      moveForward(singleOmitMoveLength);
-      rotateRightInPlace(lengthOfRotation);
+  clearStatesOfEnginesDriversPins();
+  rotateLeftInPlace(lengthOfRotation);
+  moveForward(singleOmitMoveLength);
+  rotateRightInPlace(lengthOfRotation);
 }
 
-    void Steerage::omitObstacleInFrontOf()
-    {
-            rotateRightInPlace(lengthOfRotation);
-      moveForward(singleOmitMoveLength);
-      rotateLeftInPlace(lengthOfRotation);
-    }
+void Steerage::omitObstacleInFrontOf()
+{
+  clearStatesOfEnginesDriversPins();
+  rotateRightInPlace(lengthOfRotation);
+  moveForward(singleOmitMoveLength);
+  rotateLeftInPlace(lengthOfRotation);
+}
 
 void Steerage::setDirection(direction dir)
 {
   if(dir == forward) 
   {
-       clearStates();
+    clearStatesOfEnginesDriversPins();
     rightForward();
     leftForward();
   }
   else //backward
   {
-    clearStates();
+    clearStatesOfEnginesDriversPins();
     rightBackward();
     leftBackward();
   }
