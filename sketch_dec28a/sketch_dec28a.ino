@@ -2,6 +2,7 @@
 #include "DistanceSensor.h"
 #include "Vector.h"
 #include "helpers.h"
+#include "Steerage.h"
 
 //ENGINE DRIVER PINOUT
 const int ENA =  9; //LEWY
@@ -19,9 +20,9 @@ const int rightEcho = 11;
 const int leftTrig = 12;
 const int leftEcho = 13;
 
+
+
 //TODO: calibrate
-const int singleOmitMoveLength = 500;
-const int lengthOfRotation = 380;
 const int obstacleDistanceDetectionInCm = 5;
 
 const int controllerMaxValForY = 60;
@@ -59,7 +60,7 @@ void setup()
   pinMode(IN3, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(IN1, OUTPUT);
-  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
 
   //bluetooth
   Serial.begin(9600);
@@ -74,51 +75,6 @@ void setup()
   pinMode(leftEcho, INPUT);
 }
 
-void clearStates()
-{
-   digitalWrite(IN1, LOW); 
-   digitalWrite(IN2, LOW); 
-   digitalWrite(IN3, LOW); 
-   digitalWrite(IN4, LOW);   
-}
-
-void leftForward()
-{
-  digitalWrite(IN1, HIGH); 
-  digitalWrite(IN2, LOW);
-}
-
-void rightForward()
-{
-  digitalWrite(IN3, LOW); 
-  digitalWrite(IN4, HIGH); 
-}
-
-void leftBackward()
-{
-  digitalWrite(IN1, LOW); 
-  digitalWrite(IN2, HIGH); 
-}
-
-void rightBackward()
-{
-  digitalWrite(IN3, HIGH); 
-  digitalWrite(IN4, LOW); 
-}
-
-void straightForward()
-{
-  clearStates();
-  rightForward();
-  leftForward();
-}
-
-void straightBackward()
-{
-  clearStates();
-  rightBackward();
-  leftBackward();
-}
 
 /*
  *
@@ -129,16 +85,7 @@ void straightBackward()
  * @param minSpeedVal = min effective speed value that is passed to PWM
  */
 
-int calculateSpeed(int speedVal, double turnFactor, int speedUnits = 100, int maxSpeedVal = 250, int minSpeedVal = 80)
-{
-  int calculatedSpeed;
-  if(speedVal == 0)
-    calculatedSpeed = 0;
-  else
-    calculatedSpeed =  minSpeedVal + (1-turnFactor) * speedVal*(maxSpeedVal-minSpeedVal)/speedUnits;
-    
-  return calculatedSpeed;
-}
+
 
 int readSpeed() //returns val in range from 0 to 100
 {
@@ -213,35 +160,11 @@ bool hasFoundObstacle()
   return hasFoundObstacleOnTheLeft() || hasFoundObstacleOnTheRight() || hasFoundObstacleInFrontOf();  
 }
 
-void rotateLeftInPlace(int rotateLength)
-{  
-  clearStates();
-  rightForward();
-  leftBackward();
-  analogWrite(ENA, calculateSpeed(100, 0));
-  analogWrite(ENB, calculateSpeed(100, 0));
-  delay(rotateLength);
-  clearStates();
-}
 
-void rotateRightInPlace(int rotateLength)
-{
-  clearStates();
-  rightBackward();
-  leftForward();
-  analogWrite(ENA, calculateSpeed(100, 0));
-  analogWrite(ENB, calculateSpeed(100, 0));
-  delay(rotateLength);
-  clearStates();
-}
 
-void moveForward(int numberOfMovementUnits) //TODO: 
-{
-  clearStates();
-  straightForward();
-  delay(numberOfMovementUnits);
-  clearStates();
-}
+
+
+Steerage car(ENA, ENB, IN1, IN2, IN3, IN4);
 
 void loop()
 {
@@ -254,41 +177,35 @@ void loop()
     //input read
     readStateOfController();
     sp = readSpeed();
-    leftTurnFactor = readLeftTurnFactor();
-    rightTurnFactor = readRightTurnFactor();
     dir = readDirection(); 
     
     //set speed of wheels
-    analogWrite(ENA, calculateSpeed(sp, leftTurnFactor)); 
-    analogWrite(ENB, calculateSpeed(sp, rightTurnFactor));
+    car.setSpeedOfLeftWheels(sp, readLeftTurnFactor()); 
+    car.setSpeedOfRightWheels(sp, readRightTurnFactor());
     
     //set direction
     if(dir==forward)
-      straightForward(); //TODO: change name
+      car.straightForward(); //TODO: change name
     else
-      straightBackward(); //TODO: change name
+      car.straightBackward(); //TODO: change name
   }
   else //hasFoundObstacle == true
   {
-    clearStates(); //stop car
+    car.clearStates(); //stop car //TODO: change it's name
     
     if(hasFoundObstacleOnTheLeft())
     {
-      rotateRightInPlace(lengthOfRotation);
-      moveForward(singleOmitMoveLength);
-      rotateLeftInPlace(lengthOfRotation);
+      car.omitObstacleOnTheLeft();
+
     }
     else if(hasFoundObstacleOnTheRight())
     {
-      rotateLeftInPlace(lengthOfRotation);
-      moveForward(singleOmitMoveLength);
-      rotateRightInPlace(lengthOfRotation);
+      car.omitObstacleOnTheRight();
+
     }
     else if(hasFoundObstacleInFrontOf()) // obstacles that are in fron of are always get round on the right side 
     {
-      rotateRightInPlace(lengthOfRotation);
-      moveForward(singleOmitMoveLength);
-      rotateLeftInPlace(lengthOfRotation);
+      car.omitObstacleInFrontOf();
     }
   }
 }
