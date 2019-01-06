@@ -32,10 +32,10 @@ public:
 
     void readPositionIfAvailable();
     
-    int readSpeed(); //returns val in range from 0 to 100
-    double readLeftTurnFactor(); //output val <0;1>
-    double readRightTurnFactor(); //output val <0;1>
-    direction readDirection();
+    int getSpeed(); //returns val in range from 0 to 100
+    double getLeftTurnFactor(); //output val <0;1>
+    double getRightTurnFactor(); //output val <0;1>
+    direction getDirection();
 
 private:
     Stream* stream_;

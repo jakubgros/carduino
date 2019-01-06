@@ -26,7 +26,7 @@ void setup()
 
   //bluetooth
   Serial.begin(9600);
-  Serial.setTimeout(10);
+  //Serial.setTimeout(10);
 
   //sensors
   pinMode(frontTrig, OUTPUT);
@@ -44,12 +44,17 @@ bool hasFoundObstacle(int detectionDistanceInCm)
 
 void loop()
 {
+  joystick.readPositionIfAvailable();
+  frontSensor.read();
+  leftSensor.read();
+  rightSensor.read();
+
   if(hasFoundObstacle(obstacleDistanceDetectionInCm) == false)
   {
-    sp = joystick.readSpeed();
-    car.setSpeedOfLeftWheels(sp, joystick.readLeftTurnFactor()); 
-    car.setSpeedOfRightWheels(sp, joystick.readRightTurnFactor());
-    car.setDirection(joystick.readDirection()); 
+    sp = joystick.getSpeed();
+    car.setSpeedOfLeftWheels(sp, joystick.getLeftTurnFactor()); 
+    car.setSpeedOfRightWheels(sp, joystick.getRightTurnFactor());
+    car.setDirection(joystick.getDirection()); 
   }
   else //has found obstacle
   {

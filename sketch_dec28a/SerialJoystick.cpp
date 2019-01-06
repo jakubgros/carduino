@@ -20,10 +20,8 @@ void SerialJoystick::readPositionIfAvailable()
     flush(stream_);
 }
 
-int SerialJoystick::readSpeed() //returns val <0;100>
+int SerialJoystick::getSpeed() //returns val <0;100>
 {
-  readPositionIfAvailable();
-  
   const double scalingFactor = 100.0/(controllerMaxValForY_ - controllerMinValForY_);
   int incline;
   
@@ -35,10 +33,8 @@ int SerialJoystick::readSpeed() //returns val <0;100>
   return incline * scalingFactor;
 }
 
-double SerialJoystick::readLeftTurnFactor() //output val <0;1>
+double SerialJoystick::getLeftTurnFactor() //output val <0;1>
 {
-  readPositionIfAvailable();
-    
   const double scalingFactor = 1.0/(controllerMaxValForX_ - middlePosForX_);
   int incline;
   
@@ -50,10 +46,8 @@ double SerialJoystick::readLeftTurnFactor() //output val <0;1>
   return incline * scalingFactor;
 }
 
-double SerialJoystick::readRightTurnFactor() //output val <0;1>
+double SerialJoystick::getRightTurnFactor() //output val <0;1>
 {
-  readPositionIfAvailable();
-
   const double scalingFactor = 1.0/(controllerMaxValForX_ - middlePosForX_);
   int incline;
   
@@ -65,10 +59,8 @@ double SerialJoystick::readRightTurnFactor() //output val <0;1>
   return incline * scalingFactor;
 }
 
-direction SerialJoystick::readDirection()
+direction SerialJoystick::getDirection()
 {
-  readPositionIfAvailable();
-    
   if(yPos_ <= middlePosForY_) //forward
     return direction::forward;
   else //backward
