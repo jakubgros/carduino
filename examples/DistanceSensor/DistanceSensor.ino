@@ -1,6 +1,6 @@
 #include "DistanceSensor.h"
 
-#define trigPin 9
+#define trigPin 7
 #define echoPin 8
 
 DistanceSensor ds(trigPin, echoPin);
@@ -19,6 +19,4 @@ void loop()
   Serial.print("Distance: ");
   Serial.println(distance);
   
-  Serial.print("is closer than 20cm: ");
-  Serial.println(ds.isCloserThan(20));
 }

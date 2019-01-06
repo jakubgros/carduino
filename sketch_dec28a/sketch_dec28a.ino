@@ -1,4 +1,5 @@
 #include "SerialJoystick.h"
+#include "DistanceSensor.h"
 #include "Vector.h"
 #include "helpers.h"
 
@@ -10,9 +11,18 @@ const int IN2 = 3;
 const int IN1 = 5;
 const int ENB = 6; //PRAWY
 
+//DISTANCE SENSORS PINOUT
+const int frontTrig = 7;
+const int frontEcho = 8;
+const int rightTrig = 10;
+const int rightEcho = 11;
+const int leftTrig = 12;
+const int leftEcho = 13;
+
 //TODO: calibrate
 const int singleOmitMoveLength = 500;
 const int lengthOfRotation = 380;
+const int obstacleDistanceDetectionInCm = 5;
 
 const int controllerMaxValForY = 60;
 const int controllerMinValForY = 10;
@@ -21,8 +31,12 @@ const int controllerMinValForX = 10;
 const int middlePosForY = controllerMinValForY + (controllerMaxValForY - controllerMinValForY)/2;
 const int middlePosForX = controllerMinValForX + (controllerMaxValForX - controllerMinValForX)/2;
 
-Vector controller(middlePosForX, middlePosForY);
+Vector controller(middlePosForX, middlePosForY); //TODO find better name
 SerialJoystick joystick(&Serial);
+
+DistanceSensor frontSensor(frontTrig, frontEcho);
+DistanceSensor leftSensor(leftTrig, leftEcho);
+DistanceSensor rightSensor(rightTrig, rightEcho);
 
 enum direction
 {
@@ -39,14 +53,25 @@ direction dir;
 
 void setup() 
 {
-pinMode(ENA, OUTPUT);
-pinMode(IN4, OUTPUT);
-pinMode(IN3, OUTPUT);
-pinMode(IN2, OUTPUT);
-pinMode(IN1, OUTPUT);
-pinMode(ENA, OUTPUT);
-Serial.begin(9600);
-Serial.setTimeout(10);
+  //engine's driver
+  pinMode(ENA, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(ENA, OUTPUT);
+
+  //bluetooth
+  Serial.begin(9600);
+  Serial.setTimeout(10);
+
+  //sensors
+  pinMode(frontTrig, OUTPUT);
+  pinMode(frontEcho, INPUT);
+  pinMode(rightTrig, OUTPUT);
+  pinMode(rightEcho, INPUT);
+  pinMode(leftTrig, OUTPUT);
+  pinMode(leftEcho, INPUT);
 }
 
 void clearStates()
@@ -168,25 +193,22 @@ void readStateOfController()
   flush(&Serial);
 }
 
-bool hasFoundObstacleOnTheLeft() //TODO: INPUT
-{
-  return false;
-  //TODO: implement sensor reading
+bool hasFoundObstacleOnTheLeft()
+{ 
+  return leftSensor.isCloserThan(obstacleDistanceDetectionInCm);
 }
 
-bool hasFoundObstacleOnTheRight() //TODO: INPUT
+bool hasFoundObstacleOnTheRight()
 {
-  return false;
-  //TODO: implement sensor reading
+  return rightSensor.isCloserThan(obstacleDistanceDetectionInCm);
 }
 
-bool hasFoundObstacleInFrontOf() //TODO: INPUT
+bool hasFoundObstacleInFrontOf() 
 {
-  return false;
-  //TODO: implement sensor reading
+  return frontSensor.isCloserThan(obstacleDistanceDetectionInCm);
 }
 
-bool hasFoundObstacle() //TODO: INPUT
+bool hasFoundObstacle()
 {
   return hasFoundObstacleOnTheLeft() || hasFoundObstacleOnTheRight() || hasFoundObstacleInFrontOf();  
 }
@@ -223,10 +245,10 @@ void moveForward(int numberOfMovementUnits) //TODO:
 
 void loop()
 {
-  bool obstacleFound = hasFoundObstacle();
+  bool obstacleFound = false;
 
-
-
+  Serial.println(leftSensor.getDistanceInCm());
+  
   if(obstacleFound == false)
   {
     //input read

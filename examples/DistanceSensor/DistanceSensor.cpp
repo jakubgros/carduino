@@ -9,9 +9,13 @@ DistanceSensor::DistanceSensor(int triggerPin, int echoPin)
 
 int DistanceSensor::getDistanceInCm()
 {
+    static int distance;
     clearTriggerPin();
     triggerMeasurement();
-    return pulseIn(echoPin_, HIGH) * soundSpeed_ / displacement_;
+    int measurment = pulseIn(echoPin_, HIGH) * soundSpeed_ / displacement_;
+    if(measurment != 0)
+      distance = measurment;
+    return distance;
 }
 
 bool DistanceSensor::isCloserThan(int cm)
