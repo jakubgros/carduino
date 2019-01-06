@@ -9,4 +9,10 @@ inline void flush(Stream* stream)
         stream->read();
 }
 
+enum direction
+{
+  forward,
+  backward
+};
+
 #endif

@@ -1,6 +1,8 @@
 #ifndef Steerage_h
 #define Steerage_h
 
+#include "helpers.h"
+
 class Steerage
 {
     //TODO: calibrate
@@ -31,14 +33,23 @@ const int lengthOfRotation = 380;
 
     void setSpeedOfLeftWheels(int speedVal, double turnFactor, int speedUnits = 100, int maxSpeedVal = 250, int minSpeedVal = 80);
     void setSpeedOfRightWheels(int speedVal, double turnFactor, int speedUnits = 100, int maxSpeedVal = 250, int minSpeedVal = 80);
+
+    /*
+ *
+ * @param speedVal <0, speedUnits>
+ * @param turnFactor <0,1>
+ * @param speedUnits = specifies the range of speed values passed to argument speedVal
+ * @param maxSpeedVal = max effective speed value that is passed to PWM
+ * @param minSpeedVal = min effective speed value that is passed to PWM
+ */
     int calculateSpeed(int speedVal, double turnFactor, int speedUnits = 100, int maxSpeedVal = 250, int minSpeedVal = 80);
-    void straightForward();
-    void straightBackward();
     
     void clearStates();
     void omitObstacleOnTheLeft();
     void omitObstacleOnTheRight();
     void omitObstacleInFrontOf();
+
+    void setDirection(direction dir);
 };
 
 #endif

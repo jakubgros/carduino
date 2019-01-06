@@ -33,19 +33,6 @@ void Steerage::rightBackward()
     digitalWrite(IN4, LOW); 
 }
 
-void Steerage::straightForward()
-{
-    clearStates();
-    rightForward();
-    leftForward();
-}
-
-void Steerage::straightBackward()
-{
-    clearStates();
-    rightBackward();
-    leftBackward();
-}
 
 void Steerage::rotateLeftInPlace(int rotateLength)
 {  
@@ -69,10 +56,10 @@ void Steerage::rotateRightInPlace(int rotateLength)
     clearStates();
 }
 
-void Steerage::moveForward(int numberOfMovementUnits) //TODO: change it's name because now it's confusing in combination with straightForward
+void Steerage::moveForward(int numberOfMovementUnits)
 {
     clearStates();
-    straightForward();
+    setDirection(direction::forward);
     delay(numberOfMovementUnits);
     clearStates();
 }
@@ -118,3 +105,19 @@ void Steerage::omitObstacleOnTheRight()
       moveForward(singleOmitMoveLength);
       rotateLeftInPlace(lengthOfRotation);
     }
+
+void Steerage::setDirection(direction dir)
+{
+  if(dir == forward) 
+  {
+       clearStates();
+    rightForward();
+    leftForward();
+  }
+  else //backward
+  {
+    clearStates();
+    rightBackward();
+    leftBackward();
+  }
+}

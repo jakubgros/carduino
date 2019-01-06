@@ -3,22 +3,8 @@
 #include "Vector.h"
 #include "helpers.h"
 #include "Steerage.h"
+#include "pinout.h"
 
-//ENGINE DRIVER PINOUT
-const int ENA =  9; //LEWY
-const int IN4 = 2;
-const int IN3 = 4;
-const int IN2 = 3;
-const int IN1 = 5;
-const int ENB = 6; //PRAWY
-
-//DISTANCE SENSORS PINOUT
-const int frontTrig = 7;
-const int frontEcho = 8;
-const int rightTrig = 10;
-const int rightEcho = 11;
-const int leftTrig = 12;
-const int leftEcho = 13;
 
 
 
@@ -32,6 +18,11 @@ const int controllerMinValForX = 10;
 const int middlePosForY = controllerMinValForY + (controllerMaxValForY - controllerMinValForY)/2;
 const int middlePosForX = controllerMinValForX + (controllerMaxValForX - controllerMinValForX)/2;
 
+
+
+
+
+
 Vector controller(middlePosForX, middlePosForY); //TODO find better name
 SerialJoystick joystick(&Serial);
 
@@ -39,16 +30,9 @@ DistanceSensor frontSensor(frontTrig, frontEcho);
 DistanceSensor leftSensor(leftTrig, leftEcho);
 DistanceSensor rightSensor(rightTrig, rightEcho);
 
-enum direction
-{
-  forward,
-  backward
-};
-
+Steerage car(ENA, ENB, IN1, IN2, IN3, IN4);
 int sp;
-double leftTurnFactor;
-double rightTurnFactor;
-direction dir;    
+
 
 
 
@@ -75,18 +59,6 @@ void setup()
   pinMode(leftEcho, INPUT);
 }
 
-
-/*
- *
- * @param speedVal <0, speedUnits>
- * @param turnFactor <0,1>
- * @param speedUnits = specifies the range of speed values passed to argument speedVal
- * @param maxSpeedVal = max effective speed value that is passed to PWM
- * @param minSpeedVal = min effective speed value that is passed to PWM
- */
-
-
-
 int readSpeed() //returns val in range from 0 to 100
 {
   const double scalingFactor = 100.0/(controllerMaxValForY - controllerMinValForY);
@@ -99,6 +71,11 @@ int readSpeed() //returns val in range from 0 to 100
     
   return incline * scalingFactor;
 }
+
+
+
+
+
 
 double readLeftTurnFactor() //output val <0;1>
 {
@@ -140,72 +117,32 @@ void readStateOfController()
   flush(&Serial);
 }
 
-bool hasFoundObstacleOnTheLeft()
-{ 
-  return leftSensor.isCloserThan(obstacleDistanceDetectionInCm);
-}
-
-bool hasFoundObstacleOnTheRight()
+bool hasFoundObstacle(int detectionDistanceInCm)
 {
-  return rightSensor.isCloserThan(obstacleDistanceDetectionInCm);
+  return leftSensor.isCloserThan(detectionDistanceInCm) || rightSensor.isCloserThan(detectionDistanceInCm) || frontSensor.isCloserThan(detectionDistanceInCm);  
 }
 
-bool hasFoundObstacleInFrontOf() 
-{
-  return frontSensor.isCloserThan(obstacleDistanceDetectionInCm);
-}
-
-bool hasFoundObstacle()
-{
-  return hasFoundObstacleOnTheLeft() || hasFoundObstacleOnTheRight() || hasFoundObstacleInFrontOf();  
-}
-
-
-
-
-
-Steerage car(ENA, ENB, IN1, IN2, IN3, IN4);
 
 void loop()
 {
-  bool obstacleFound = false;
-
-  Serial.println(leftSensor.getDistanceInCm());
-  
-  if(obstacleFound == false)
+  if(hasFoundObstacle(obstacleDistanceDetectionInCm) == false)
   {
-    //input read
     readStateOfController();
-    sp = readSpeed();
-    dir = readDirection(); 
     
-    //set speed of wheels
+    sp = readSpeed();
     car.setSpeedOfLeftWheels(sp, readLeftTurnFactor()); 
     car.setSpeedOfRightWheels(sp, readRightTurnFactor());
-    
-    //set direction
-    if(dir==forward)
-      car.straightForward(); //TODO: change name
-    else
-      car.straightBackward(); //TODO: change name
+    car.setDirection(readDirection()); 
   }
   else //hasFoundObstacle == true
   {
     car.clearStates(); //stop car //TODO: change it's name
     
-    if(hasFoundObstacleOnTheLeft())
-    {
+    if(leftSensor.isCloserThan(obstacleDistanceDetectionInCm))
       car.omitObstacleOnTheLeft();
-
-    }
-    else if(hasFoundObstacleOnTheRight())
-    {
+    else if(rightSensor.isCloserThan(obstacleDistanceDetectionInCm))
       car.omitObstacleOnTheRight();
-
-    }
-    else if(hasFoundObstacleInFrontOf()) // obstacles that are in fron of are always get round on the right side 
-    {
+    else if(frontSensor.isCloserThan(obstacleDistanceDetectionInCm)) // obstacles that are in fron of are always get round on the right side 
       car.omitObstacleInFrontOf();
-    }
   }
 }
