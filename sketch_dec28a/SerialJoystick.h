@@ -24,8 +24,8 @@ public:
         controllerMinValForX_(controllerMinValForX),
         middlePosForY_(controllerMinValForY + (controllerMaxValForY - controllerMinValForY)/2),
         middlePosForX_(controllerMinValForX + (controllerMaxValForX - controllerMinValForX)/2),
-        xPos_(0),
-        yPos_(0)
+        xPos_(middlePosForX_),
+        yPos_(middlePosForY_)
     {
         ;
     }
