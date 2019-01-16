@@ -36,6 +36,7 @@ public:
     double getLeftTurnFactor(); //output val <0;1>
     double getRightTurnFactor(); //output val <0;1>
     direction getDirection();
+    bool readIfOmittingOn();
 
 private:
     Stream* stream_;

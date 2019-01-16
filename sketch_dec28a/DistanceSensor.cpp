@@ -9,6 +9,7 @@ DistanceSensor::DistanceSensor(int triggerPin, int echoPin)
 
 int DistanceSensor::getDistanceInCm()
 {
+    read();
     return lastMeasurment_;
 }
 

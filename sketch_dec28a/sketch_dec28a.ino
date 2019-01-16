@@ -5,14 +5,14 @@
 #include "Steerage.h"
 #include "pinout.h"
 
-const int lengthOfRotation = 380; //TODO: calibrate
-const int obstacleDistanceDetectionInCm = 10; //TODO: calibrate
-const int additionalMoveLength = 100; //TODO: calibrate
-const int singleStepLength = 10; //TODO: calibrate
+const int lengthOfRotation = 320; //TODO: calibrate
+const int obstacleDistanceDetectionInCm = 20; //TODO: calibrate
+const int additionalMoveLength = 400; //TODO: calibrate
+const int singleStepLength = 100; //TODO: calibrate
 
 int sp;
 
-SerialJoystick joystick(&Serial, 60, 10, 60, 10);
+SerialJoystick joystick(&Serial1, 60, 10, 60, 10);
 DistanceSensor frontSensor(frontTrig, frontEcho);
 DistanceSensor leftSensor(leftTrig, leftEcho);
 DistanceSensor rightSensor(rightTrig, rightEcho);
@@ -31,6 +31,8 @@ void setup()
   //bluetooth
   Serial.begin(9600);
   Serial.setTimeout(10);
+  Serial1.begin(9600);
+  Serial1.setTimeout(10);
 
   //sensors
   pinMode(frontTrig, OUTPUT);
@@ -50,10 +52,13 @@ bool hasFoundObstacle(int detectionDistanceInCm)
   return leftSensor.isCloserThan(detectionDistanceInCm) || rightSensor.isCloserThan(detectionDistanceInCm) || frontSensor.isCloserThan(detectionDistanceInCm);  
 }
 
+ bool isOmittingOn = false;
+  
 void makeReads()
 {
+  isOmittingOn = joystick.readIfOmittingOn();
   joystick.readPositionIfAvailable();
-
+  
   static int i = 0;
   if(i++ < 10) //only once 10 iteratios, because they take long time
   {
@@ -65,49 +70,59 @@ void makeReads()
     i = 0;
 }
 
+
 void loop()
 {
   makeReads();
-
   if(frontSensor.isCloserThan(obstacleDistanceDetectionInCm) == false)
   {
     sp = joystick.getSpeed();
-    car.setSpeedOfLeftWheels(sp, joystick.getLeftTurnFactor()); 
+    car.setSpeedOfLeftWheels(sp, joystick.getLeftTurnFactor());
     car.setSpeedOfRightWheels(sp, joystick.getRightTurnFactor());
     car.setDirection(joystick.getDirection()); 
   }
-  else //has found obstacle
+  else if(isOmittingOn)//has found obstacle
   {
-    if(leftSensor.isCloserThan(obstacleDistanceDetectionInCm))
+    isOmittingOn = false;
+    //Serial.println("*left detected*");
+    car.rotateRightInPlace(lengthOfRotation);
+    //jedz az stracisz przeszkode
+    int i = 0;
+    while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20))
     {
-      car.rotateRightInPlace(lengthOfRotation);
-      //jedz az stracisz przeszkode
-      int i = 0;
-      while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 5))
-      {
-          car.moveForward(singleStepLength);
-          ++i;
-      }
-  
-      car.moveForward(additionalMoveLength);
-      car.rotateLeftInPlace(lengthOfRotation);
-      //jedz az zlapiesz znowu
-      while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 5) == false)
-          car.moveForward(singleStepLength);
-  
-      //jedz az stracisz znowu
-      while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 5))
-          car.moveForward(singleStepLength);
-      car.moveForward(additionalMoveLength);
-  
-      //wroc na pozycje
-      car.rotateLeftInPlace(lengthOfRotation);
-      while(i >= 0)
-      {
-          car.moveForward(singleStepLength);
-          --i;
-      }
-      car.rotateRightInPlace(lengthOfRotation);
+        car.moveForward(singleStepLength);
+        ++i;
     }
-  }
+    //Serial.println("*1*");
+
+    
+    /* car.moveForward(additionalMoveLength);
+    car.rotateLeftInPlace(lengthOfRotation);
+    
+    //jedz az zlapiesz znowu
+    while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20) == false)
+    {
+        car.moveForward(singleStepLength);
+    }
+    //Serial.println("*2*");
+    
+    //jedz az stracisz znowu
+    while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20))
+    {
+      car.moveForward(singleStepLength);
+    }
+    car.moveForward(additionalMoveLength);
+    //Serial.println("*3*");
+    
+    //wroc na pozycje
+    car.rotateLeftInPlace(lengthOfRotation);
+    while(i >= 0)
+    {
+        car.moveForward(singleStepLength);
+        --i;
+    }
+    //Serial.println("*4*");
+    car.rotateRightInPlace(lengthOfRotation); 
+    */
+  } 
 }
