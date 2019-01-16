@@ -5,7 +5,11 @@
 #include "Steerage.h"
 #include "pinout.h"
 
+const int lengthOfRotation = 380; //TODO: calibrate
 const int obstacleDistanceDetectionInCm = 10; //TODO: calibrate
+const int additionalMoveLength = 100; //TODO: calibrate
+const int singleStepLength = 10; //TODO: calibrate
+
 int sp;
 
 SerialJoystick joystick(&Serial, 60, 10, 60, 10);
@@ -65,7 +69,7 @@ void loop()
 {
   makeReads();
 
-  if(hasFoundObstacle(obstacleDistanceDetectionInCm) == false)
+  if(frontSensor.isCloserThan(obstacleDistanceDetectionInCm) == false)
   {
     sp = joystick.getSpeed();
     car.setSpeedOfLeftWheels(sp, joystick.getLeftTurnFactor()); 
@@ -75,10 +79,35 @@ void loop()
   else //has found obstacle
   {
     if(leftSensor.isCloserThan(obstacleDistanceDetectionInCm))
-      car.omitObstacleOnTheLeft();
-    else if(rightSensor.isCloserThan(obstacleDistanceDetectionInCm))
-      car.omitObstacleOnTheRight();
-    else if(frontSensor.isCloserThan(obstacleDistanceDetectionInCm)) // obstacles that are in fron of are always get round on the right side 
-      car.omitObstacleInFrontOf();
+    {
+      car.rotateRightInPlace(lengthOfRotation);
+      //jedz az stracisz przeszkode
+      int i = 0;
+      while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 5))
+      {
+          car.moveForward(singleStepLength);
+          ++i;
+      }
+  
+      car.moveForward(additionalMoveLength);
+      car.rotateLeftInPlace(lengthOfRotation);
+      //jedz az zlapiesz znowu
+      while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 5) == false)
+          car.moveForward(singleStepLength);
+  
+      //jedz az stracisz znowu
+      while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 5))
+          car.moveForward(singleStepLength);
+      car.moveForward(additionalMoveLength);
+  
+      //wroc na pozycje
+      car.rotateLeftInPlace(lengthOfRotation);
+      while(i >= 0)
+      {
+          car.moveForward(singleStepLength);
+          --i;
+      }
+      car.rotateRightInPlace(lengthOfRotation);
+    }
   }
 }
