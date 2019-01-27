@@ -68,8 +68,8 @@ void Steerage::moveForward(int numberOfMovementUnits)
     clearStatesOfEnginesDriversPins();
     
     setDirection(direction::forward);
-    analogWrite(ENA, calculateSpeed(20, 0));
-    analogWrite(ENB, calculateSpeed(20, 0));
+    analogWrite(ENA, calculateSpeed(50, 0));
+    analogWrite(ENB, calculateSpeed(50, 0));
     
     delay(numberOfMovementUnits);
 

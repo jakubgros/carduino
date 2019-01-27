@@ -5,11 +5,12 @@
 #include "Steerage.h"
 #include "pinout.h"
 
-const int lengthOfRotation = 320; //TODO: calibrate
+const int lengthOfRotation = 500; //TODO: calibrate
 const int obstacleDistanceDetectionInCm = 20; //TODO: calibrate
-const int additionalMoveLength = 400; //TODO: calibrate
-const int singleStepLength = 100; //TODO: calibrate
+const int additionalMoveLength = 250; //TODO: calibrate
+const int singleStepLength = 50; //TODO: calibrate
 
+const int omittingButton = 10;
 int sp;
 
 SerialJoystick joystick(&Serial1, 60, 10, 60, 10);
@@ -41,6 +42,7 @@ void setup()
   pinMode(rightEcho, INPUT);
   pinMode(leftTrig, OUTPUT);
   pinMode(leftEcho, INPUT);
+  pinMode(omittingButton, INPUT);
 }
 
 
@@ -56,15 +58,15 @@ bool hasFoundObstacle(int detectionDistanceInCm)
   
 void makeReads()
 {
-  isOmittingOn = joystick.readIfOmittingOn();
-  joystick.readPositionIfAvailable();
+  isOmittingOn = true; // joystick.readIfOmittingOn();
+//  joystick.readPositionIfAvailable();
   
   static int i = 0;
   if(i++ < 10) //only once 10 iteratios, because they take long time
   {
     frontSensor.read();
     leftSensor.read();
-    rightSensor.read();
+    //rightSensor.read();
   }
   else
     i = 0;
@@ -73,6 +75,7 @@ void makeReads()
 
 void loop()
 {
+Serial.println(0);
   makeReads();
   if(frontSensor.isCloserThan(obstacleDistanceDetectionInCm) == false)
   {
@@ -83,9 +86,11 @@ void loop()
   }
   else if(isOmittingOn)//has found obstacle
   {
+    Serial.println(1);
     isOmittingOn = false;
     //Serial.println("*left detected*");
     car.rotateRightInPlace(lengthOfRotation);
+    delay(1000);
     //jedz az stracisz przeszkode
     int i = 0;
     while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20))
@@ -96,9 +101,9 @@ void loop()
     //Serial.println("*1*");
 
     
-    /* car.moveForward(additionalMoveLength);
+     car.moveForward(additionalMoveLength);
     car.rotateLeftInPlace(lengthOfRotation);
-    
+    delay(1000);
     //jedz az zlapiesz znowu
     while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20) == false)
     {
@@ -113,9 +118,9 @@ void loop()
     }
     car.moveForward(additionalMoveLength);
     //Serial.println("*3*");
-    
     //wroc na pozycje
     car.rotateLeftInPlace(lengthOfRotation);
+     delay(1000);
     while(i >= 0)
     {
         car.moveForward(singleStepLength);
@@ -123,6 +128,6 @@ void loop()
     }
     //Serial.println("*4*");
     car.rotateRightInPlace(lengthOfRotation); 
-    */
+   
   } 
 }
