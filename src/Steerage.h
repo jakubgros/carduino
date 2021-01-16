@@ -5,8 +5,8 @@
 
 class Steerage
 {
-    const int singleOmitMoveLength = 1000; //TODO: calibrate
-    const int lengthOfRotation = 380; //TODO: calibrate
+    const int singleOmitMoveLength = 1000;
+    const int lengthOfRotation = 380;
 
     const int ENA;
     const int ENB;

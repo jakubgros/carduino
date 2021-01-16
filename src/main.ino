@@ -45,37 +45,27 @@ void setup()
   pinMode(omittingButton, INPUT);
 }
 
-
-
-
-bool hasFoundObstacle(int detectionDistanceInCm)
-{
-  
-  return leftSensor.isCloserThan(detectionDistanceInCm) || rightSensor.isCloserThan(detectionDistanceInCm) || frontSensor.isCloserThan(detectionDistanceInCm);  
-}
-
  bool isOmittingOn = false;
   
 void makeReads()
 {
-  isOmittingOn = true; // joystick.readIfOmittingOn();
-//  joystick.readPositionIfAvailable();
+  isOmittingOn = joystick.readIfOmittingOn();
+  joystick.readPositionIfAvailable();
   
   static int i = 0;
   if(i++ < 10) //only once 10 iteratios, because they take long time
   {
     frontSensor.read();
     leftSensor.read();
-    //rightSensor.read();
+    rightSensor.read();
   }
   else
     i = 0;
 }
 
-
 void loop()
 {
-Serial.println(0);
+  Serial.println(0);
   makeReads();
   if(frontSensor.isCloserThan(obstacleDistanceDetectionInCm) == false)
   {
@@ -84,49 +74,43 @@ Serial.println(0);
     car.setSpeedOfRightWheels(sp, joystick.getRightTurnFactor());
     car.setDirection(joystick.getDirection()); 
   }
-  else if(isOmittingOn)//has found obstacle
+  else if(isOmittingOn)
   {
-    Serial.println(1);
     isOmittingOn = false;
-    //Serial.println("*left detected*");
     car.rotateRightInPlace(lengthOfRotation);
     delay(1000);
-    //jedz az stracisz przeszkode
+
     int i = 0;
     while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20))
     {
         car.moveForward(singleStepLength);
         ++i;
-    }
-    //Serial.println("*1*");
+    } 
+    car.moveForward(additionalMoveLength);
 
-    
-     car.moveForward(additionalMoveLength);
     car.rotateLeftInPlace(lengthOfRotation);
     delay(1000);
-    //jedz az zlapiesz znowu
+
     while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20) == false)
     {
         car.moveForward(singleStepLength);
     }
-    //Serial.println("*2*");
     
-    //jedz az stracisz znowu
     while(leftSensor.isCloserThan(obstacleDistanceDetectionInCm + 20))
     {
       car.moveForward(singleStepLength);
     }
     car.moveForward(additionalMoveLength);
-    //Serial.println("*3*");
-    //wroc na pozycje
+
     car.rotateLeftInPlace(lengthOfRotation);
-     delay(1000);
+    delay(1000);
+
     while(i >= 0)
     {
         car.moveForward(singleStepLength);
         --i;
     }
-    //Serial.println("*4*");
+
     car.rotateRightInPlace(lengthOfRotation); 
    
   } 

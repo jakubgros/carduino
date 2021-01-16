@@ -1,4 +1,4 @@
-#include "../includes/DistanceSensor.h"
+#include "DistanceSensor.h"
 #include "Arduino.h"
 
 DistanceSensor::DistanceSensor(int triggerPin, int echoPin)
@@ -9,9 +9,17 @@ DistanceSensor::DistanceSensor(int triggerPin, int echoPin)
 
 int DistanceSensor::getDistanceInCm()
 {
+    read();
+    return lastMeasurment_;
+}
+
+void DistanceSensor::read()
+{
     clearTriggerPin();
     triggerMeasurement();
-    return pulseIn(echoPin_, HIGH) * soundSpeed_ / displacement_;
+    int measurment = pulseIn(echoPin_, HIGH) * soundSpeed_ / displacement_;
+    if(measurment != 0)
+      lastMeasurment_ = measurment;
 }
 
 bool DistanceSensor::isCloserThan(int cm)
